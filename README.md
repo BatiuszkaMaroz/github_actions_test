@@ -2,12 +2,13 @@
 
 ##### build the project
 
-    ./gradlew build
+- `./gradlew build`
 
-##### build Docker image called java-app. Execute from root
+##### build Docker image called github-actions-test. Execute from root
 
-    docker build -t java-app .
+- `docker build -t github-actions-test .`
 
 ##### push image to repo
 
-    docker tag java-app demo-app:java-1.0
+- `docker tag github-actions-test batiuszkamaroz/github-actions-test:1.0`
+- `docker push batiuszkamaroz/github-actions-test:1.0`
