@@ -8,14 +8,14 @@ on:
 
 jobs:
   call-workflow-version-1:
-    uses: ./.github/workflows/generate_image.yml
+    uses: ./.github/workflows/generate_artifact.yml
     secrets: inherit
     with:
-      working_directory: ./version_1
-      image_tag: ver11
+      WORKDIR: ./version_1
+      IMAGE_TAG: ver11
   call-workflow-version-2:
-    uses: ./.github/workflows/generate_image.yml
+    uses: ./.github/workflows/generate_artifact.yml
     secrets: inherit
     with:
-      working_directory: ./version_2
-      image_tag: ver22
+      WORKDIR: ./version_2
+      IMAGE_TAG: ver22

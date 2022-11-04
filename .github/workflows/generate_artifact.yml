@@ -3,84 +3,82 @@ name: Java CI with Gradle
 on:
   workflow_call:
     inputs:
-      working_directory:
+      WORKDIR:
         required: true
         type: string
-      image_tag:
+      DOCKERFILE:
         required: true
         type: string
-
+      IMAGE_TAG:
+        required: true
+        type: string
+      RUNNER_CONF:
+        required: false
+        type: string
+        default: ubuntu-latest
     outputs:
       ECR_IMAGE:
-        description: 'ECR Image'
+        description: 'ECR Container image tag'
         value: ${{ jobs.build.outputs.ECR_IMAGE}}
 
 env:
-  AWS_REGION: eu-central-1
   ECR_REPOSITORY: github-actions-test
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  AWS_REGION: us-east-1
 
 permissions:
-  contents: read
   id-token: write # This is required for requesting the JWT
+  contents: read
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.RUNNER_CONF }}
     steps:
       - uses: actions/checkout@v3
       - uses: hadolint/hadolint-action@v2.0.0
         with:
-          dockerfile: ${{ inputs.working_directory }}/Dockerfile
+          dockerfile: ${{ inputs.WORKDIR }}/${{ inputs.DOCKERFILE }}
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.RUNNER_CONF }}
     needs: [lint]
     environment: ecr
     defaults:
       run:
-        working-directory: ${{ inputs.working_directory }}
-
+        working-directory: ${{ inputs.WORKDIR }}
     outputs:
-      ECR_IMAGE: ${{ steps.build-image.outputs.IMAGE }}
-
+      ECR_IMAGE: ${{ steps.build-image.outputs.ECR_IMAGE }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
       - name: Set up JDK 1.8
         uses: actions/setup-java@v3
         with:
           distribution: 'corretto'
           java-version: '8'
-
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-
       - name: Build with Gradle
         run: ./gradlew build
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          # aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          # aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          role-to-assume: arn:aws:iam::170385535815:role/github-actions-test-role
+          role-to-assume: ${{ secrets.AWS_ROLE }}
           role-session-name: MySessionName
           role-duration-seconds: 3600
           mask-aws-account-id: no # TO AVOID Skip output 'ECR_IMAGE' since it may contain secret.
           aws-region: ${{ env.AWS_REGION }}
-
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-
+        with:
+          registries: ${{ env.AWS_ACCOUNT_ID }}
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          # IMAGE_TAG: ${{ github.sha }}
-          IMAGE_TAG: ${{ inputs.image_tag }}
+          IMAGE_TAG: ${{ inputs.IMAGE_TAG }}_${{ github.sha }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "::set-output name=IMAGE::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "ECR_IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
