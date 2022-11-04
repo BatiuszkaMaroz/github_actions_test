@@ -12,10 +12,12 @@ jobs:
     secrets: inherit
     with:
       WORKDIR: ./version_1
-      IMAGE_TAG: ver11
+      IMAGE_TAG: ver1
+      DOCKERFILE: Dockerfile
   call-workflow-version-2:
     uses: ./.github/workflows/generate_artifact.yml
     secrets: inherit
     with:
       WORKDIR: ./version_2
-      IMAGE_TAG: ver22
+      IMAGE_TAG: ver2
+      DOCKERFILE: Dockerfile
