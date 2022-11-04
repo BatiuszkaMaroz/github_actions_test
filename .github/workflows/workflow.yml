@@ -12,10 +12,10 @@ jobs:
     secrets: inherit
     with:
       working_directory: ./version_1
-      image_tag: ver1
+      image_tag: ver11
   call-workflow-version-2:
     uses: ./.github/workflows/generate_image.yml
     secrets: inherit
     with:
       working_directory: ./version_2
-      image_tag: ver2
+      image_tag: ver22
