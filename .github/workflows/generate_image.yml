@@ -20,9 +20,6 @@ permissions:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ inputs.working_directory }}
     steps:
       - uses: actions/checkout@v3
       - uses: hadolint/hadolint-action@v2.0.0
@@ -36,6 +33,9 @@ jobs:
     defaults:
       run:
         working-directory: ${{ inputs.working_directory }}
+
+    outputs:
+      ECR_IMAGE: ${{ steps.build-image.outputs.IMAGE }}
 
     steps:
       - name: Checkout
@@ -73,4 +73,4 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "::set-output name=IMAGE::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
