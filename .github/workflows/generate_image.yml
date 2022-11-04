@@ -10,6 +10,11 @@ on:
         required: true
         type: string
 
+    outputs:
+      ECR_IMAGE:
+        description: 'ECR Image'
+        value: ${{ jobs.build.outputs.ECR_IMAGE}}
+
 env:
   AWS_REGION: eu-central-1
   ECR_REPOSITORY: github-actions-test
@@ -59,7 +64,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-          mask-aws-account-id: no
+          mask-aws-account-id: no # TO AVOID Skip output 'ECR_IMAGE' since it may contain secret.
 
       - name: Login to Amazon ECR
         id: login-ecr
